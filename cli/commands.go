@@ -9,6 +9,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	empty "google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -20,8 +22,6 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/howeyc/gopass"
 	"github.com/op/go-logging"
 	"github.com/opensourceways/mirrorbits/core"
@@ -207,10 +207,11 @@ func (c *cli) CmdList(args ...string) error {
 				continue
 			}
 		}
-		stateSince, err := ptypes.Timestamp(mirror.StateSince)
-		if err != nil {
+
+		if err = mirror.StateSince.CheckValid(); err != nil {
 			log.Fatal("list error:", err)
 		}
+		stateSince := mirror.StateSince.AsTime()
 		fmt.Fprintf(w, "%s ", mirror.Name)
 		if *score == true {
 			fmt.Fprintf(w, "\t%d ", mirror.Score)
@@ -964,13 +965,13 @@ func (c *cli) CmdStats(args ...string) error {
 	if err != nil {
 		start = time.Now()
 	}
-	startproto, _ := ptypes.TimestampProto(start)
+	startproto := timestamppb.New(start)
 
 	end, err := time.Parse("2006-1-2", *dateEnd)
 	if err != nil {
 		end = time.Now()
 	}
-	endproto, _ := ptypes.TimestampProto(end)
+	endproto := timestamppb.New(end)
 
 	client := c.GetRPC()
 	ctx, cancel := context.WithTimeout(context.Background(), defaultRPCTimeout)

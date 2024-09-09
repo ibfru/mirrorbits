@@ -5,6 +5,7 @@ package rpc
 
 import (
 	"fmt"
+	empty "google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"net/url"
@@ -16,6 +17,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/gomodule/redigo/redis"
 	. "github.com/opensourceways/mirrorbits/config"
 	"github.com/opensourceways/mirrorbits/core"
 	"github.com/opensourceways/mirrorbits/database"
@@ -23,9 +25,6 @@ import (
 	"github.com/opensourceways/mirrorbits/network"
 	"github.com/opensourceways/mirrorbits/scan"
 	"github.com/opensourceways/mirrorbits/utils"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
@@ -630,14 +629,15 @@ func (c *CLI) StatsFile(ctx context.Context, in *StatsFileRequest) (*StatsFileRe
 	defer conn.Close()
 
 	// Convert the timestamps
-	start, err := ptypes.Timestamp(in.DateStart)
-	if err != nil {
+	if err = in.DateStart.CheckValid(); err != nil {
 		return nil, err
 	}
-	end, err := ptypes.Timestamp(in.DateEnd)
-	if err != nil {
+	start := in.DateStart.AsTime()
+
+	if err = in.DateEnd.CheckValid(); err != nil {
 		return nil, err
 	}
+	end := in.DateEnd.AsTime()
 
 	// Compile the regex pattern
 	re, err := regexp.Compile(in.Pattern)
@@ -696,14 +696,15 @@ func (c *CLI) StatsMirror(ctx context.Context, in *StatsMirrorRequest) (*StatsMi
 	defer conn.Close()
 
 	// Convert the timestamps
-	start, err := ptypes.Timestamp(in.DateStart)
-	if err != nil {
+	if err = in.DateStart.CheckValid(); err != nil {
 		return nil, err
 	}
-	end, err := ptypes.Timestamp(in.DateEnd)
-	if err != nil {
+	start := in.DateStart.AsTime()
+
+	if err = in.DateEnd.CheckValid(); err != nil {
 		return nil, err
 	}
+	end := in.DateEnd.AsTime()
 
 	// Generate the list of redis key for the period
 	tkcoverage := utils.TimeKeyCoverage(start, end)

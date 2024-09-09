@@ -3,7 +3,6 @@ module github.com/opensourceways/mirrorbits
 require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/etix/goftp v0.0.0-20170217140226-0c13163a1028
-	github.com/golang/protobuf v1.5.4
 	github.com/gomodule/redigo v0.0.0-20181026001555-e8fc0692a7e2
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
@@ -20,6 +19,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/stretchr/testify v1.7.0 // indirect

@@ -5,24 +5,24 @@ package rpc
 
 import (
 	"github.com/opensourceways/mirrorbits/mirrors"
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func MirrorToRPC(m *mirrors.Mirror) (*Mirror, error) {
-	stateSince, err := ptypes.TimestampProto(m.StateSince.Time)
-	if err != nil {
+	stateSince := timestamppb.New(m.StateSince.Time)
+	if err := stateSince.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastSync, err := ptypes.TimestampProto(m.LastSync.Time)
-	if err != nil {
+	lastSync := timestamppb.New(m.LastSync.Time)
+	if err := lastSync.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastSuccessfulSync, err := ptypes.TimestampProto(m.LastSuccessfulSync.Time)
-	if err != nil {
+	lastSuccessfulSync := timestamppb.New(m.LastSuccessfulSync.Time)
+	if err := lastSuccessfulSync.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastModTime, err := ptypes.TimestampProto(m.LastModTime.Time)
-	if err != nil {
+	lastModTime := timestamppb.New(m.LastModTime.Time)
+	if err := lastModTime.CheckValid(); err != nil {
 		return nil, err
 	}
 	return &Mirror{
@@ -62,22 +62,23 @@ func MirrorToRPC(m *mirrors.Mirror) (*Mirror, error) {
 }
 
 func MirrorFromRPC(m *Mirror) (*mirrors.Mirror, error) {
-	stateSince, err := ptypes.Timestamp(m.StateSince)
-	if err != nil {
+
+	if err := m.StateSince.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastSync, err := ptypes.Timestamp(m.LastSync)
-	if err != nil {
+	stateSince := m.StateSince.AsTime()
+	if err := m.LastSync.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastSuccessfulSync, err := ptypes.Timestamp(m.LastSuccessfulSync)
-	if err != nil {
+	lastSync := m.LastSync.AsTime()
+	if err := m.LastSuccessfulSync.CheckValid(); err != nil {
 		return nil, err
 	}
-	lastModTime, err := ptypes.Timestamp(m.LastModTime)
-	if err != nil {
+	lastSuccessfulSync := m.LastSuccessfulSync.AsTime()
+	if err := m.LastModTime.CheckValid(); err != nil {
 		return nil, err
 	}
+	lastModTime := m.LastModTime.AsTime()
 	return &mirrors.Mirror{
 		ID:                   int(m.ID),
 		Name:                 m.Name,
