@@ -6,12 +6,12 @@ package cli
 import (
 	"context"
 	"fmt"
-	empty "google.golang.org/protobuf/types/known/emptypb"
 	"os"
 	"strconv"
 
 	"github.com/opensourceways/mirrorbits/core"
 	"github.com/opensourceways/mirrorbits/rpc"
+	"github.com/golang/protobuf/ptypes/empty"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
