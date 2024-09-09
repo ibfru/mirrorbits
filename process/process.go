@@ -14,8 +14,8 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/opensourceways/mirrorbits/core"
 	"github.com/op/go-logging"
+	"github.com/opensourceways/mirrorbits/core"
 )
 
 var (
@@ -126,7 +126,7 @@ func Recover() (l net.Listener, ppid int, err error) {
 		err = fmt.Errorf("file descriptor is %T not *net.TCPListener or *net.UnixListener", i)
 		return
 	}
-	if err = syscall.Close(int(fd)); err != nil {
+	if err = syscall.Close(syscall.Handle(fd)); err != nil {
 		return
 	}
 	_, err = fmt.Sscan(os.Getenv("OLD_PPID"), &ppid)
