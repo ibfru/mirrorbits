@@ -67,9 +67,15 @@ func (r *HttpScanner) Scan(httpUrl, identifier string, conn redis.Conn, stop <-c
 		fileUrl := strings.ReplaceAll(fl.Dir, filesystem.Sep, "/") + "/" + fl.Name
 		req1, _ := http.NewRequest("HEAD", uri.String()+"/"+fileUrl, nil)
 		req1.Header.Set("User-Agent", userAgent)
+
+	retry:
 		resp1, err1 := client.Do(req)
 		if err1 != nil {
 			return 0, err
+		}
+		if resp1.StatusCode == http.StatusTooManyRequests {
+			time.Sleep(time.Second)
+			goto retry
 		}
 		if resp1.StatusCode != http.StatusOK {
 			return 0, errors.New("mirror file http url: " + uri.String() + "/" + fileUrl + " request failed")
