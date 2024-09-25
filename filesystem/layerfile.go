@@ -125,9 +125,9 @@ func GetSelectorList() []LayerFile {
 func GetRepoFileList(version string, filter config.DirFilter) []DisplayFileList {
 	lock.RLock()
 	defer lock.RUnlock()
-	if v, ok := repoVersionMap[version]; ok {
-		return v
-	}
+	//if v, ok := repoVersionMap[version]; ok {
+	//	return v
+	//}
 
 	if p, ok := fileTree.Mapping[version]; ok {
 		repoVersionMap[version] = p.flattening()
@@ -193,7 +193,7 @@ func Filter(path string) bool {
 }
 
 func appendParticularFile(d *DisplayFileList, p config.ParticularFileMapping) {
-	for _, v := range p.SourcePath {
+	for i, v := range p.SourcePath {
 		path := v
 		pathArr := strings.Split(path, Sep)
 		viewSize := ""
@@ -202,10 +202,13 @@ func appendParticularFile(d *DisplayFileList, p config.ParticularFileMapping) {
 			viewSize = size.viewFileSize()
 		}
 		shaCode := ""
-		sha, ok := fileTree.Mapping[path+FileExtensionSha256]
-		if ok {
-			shaCode = strings.Split(sha.Sha256, " ")[0]
+		if i < len(p.HashPath) {
+			sha, err := os.ReadFile(path + p.HashPath[i])
+			if err == nil {
+				shaCode = strings.Split(string(sha), " ")[0]
+			}
 		}
+
 		d.Tree = append(d.Tree, DisplayFile{
 			Name:    pathArr[len(pathArr)-1],
 			Path:    path,
@@ -346,16 +349,11 @@ func (ft *LayerFile) appendFile(flag bool, t []DisplayFile) []DisplayFile {
 		return t
 	}
 	path := ft.Dir + Sep + ft.Name
-	shaCode := ""
-	sha, ok := fileTree.Mapping[path+FileExtensionSha256]
-	if ok {
-		shaCode = strings.Split(sha.Sha256, " ")[0]
-	}
 	return append(t, DisplayFile{
 		Name:    ft.Name,
 		Path:    path,
 		Size:    ft.viewFileSize(),
-		ShaCode: shaCode,
+		ShaCode: ft.Sha256,
 		Type:    "file",
 	})
 }
