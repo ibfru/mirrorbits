@@ -320,7 +320,12 @@ func (ft *LayerFile) collectFileInfo(ans []DisplayFileList, scenario string) []D
 		}
 	} else {
 		for _, p := range ft.Sub {
-			flag := (arr[1] == "ISO" || arr[1] == "edge_img") && p.Sha256 != ""
+			flag := false
+			if arr[1] == "virtual_machine_img" || arr[1] == "embedded_img" {
+				flag = true
+			} else {
+				flag = p.Sha256 != ""
+			}
 			t = p.appendFile(len(p.Sub) == 0 && !strings.HasSuffix(p.Name, FileExtensionSha256) && flag, t)
 			t = p.appendDir(len(p.Sub) != 0, t)
 		}
