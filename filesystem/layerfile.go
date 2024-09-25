@@ -122,18 +122,18 @@ func GetSelectorList() []LayerFile {
 	return ans
 }
 
-func GetRepoFileList(version string, filter config.DirFilter) []DisplayFileList {
+func GetRepoFileList(version string, cnf *config.Configuration) []DisplayFileList {
 	lock.RLock()
 	defer lock.RUnlock()
-	//if v, ok := repoVersionMap[version]; ok {
-	//	return v
-	//}
+	if v, ok := repoVersionMap[version]; ok {
+		return v
+	}
 
 	if p, ok := fileTree.Mapping[version]; ok {
 		repoVersionMap[version] = p.flattening()
 	}
 
-	for _, v := range filter.ParticularFile {
+	for _, v := range cnf.RepositoryFilter.ParticularFile {
 		if v.VersionName == version {
 			idx := -1
 			for i := range repoVersionMap[version] {
@@ -147,11 +147,11 @@ func GetRepoFileList(version string, filter config.DirFilter) []DisplayFileList 
 					Scenario: v.ScenarioName,
 					Arch:     v.ArchName,
 				}
-				appendParticularFile(ans, v)
+				appendParticularFile(ans, v, cnf.Repository)
 				repoVersionMap[version] = append(repoVersionMap[version], *ans)
 			} else {
 				ans := &repoVersionMap[version][idx]
-				appendParticularFile(ans, v)
+				appendParticularFile(ans, v, cnf.Repository)
 				repoVersionMap[version][idx] = *ans
 			}
 		}
@@ -192,7 +192,7 @@ func Filter(path string) bool {
 	return false
 }
 
-func appendParticularFile(d *DisplayFileList, p config.ParticularFileMapping) {
+func appendParticularFile(d *DisplayFileList, p config.ParticularFileMapping, repoPath string) {
 	for i, v := range p.SourcePath {
 		path := v
 		pathArr := strings.Split(path, Sep)
@@ -203,7 +203,7 @@ func appendParticularFile(d *DisplayFileList, p config.ParticularFileMapping) {
 		}
 		shaCode := ""
 		if i < len(p.HashPath) {
-			sha, err := os.ReadFile(path + p.HashPath[i])
+			sha, err := os.ReadFile(repoPath + Sep + path + p.HashPath[i])
 			if err == nil {
 				shaCode = strings.Split(string(sha), " ")[0]
 			}
@@ -320,7 +320,8 @@ func (ft *LayerFile) collectFileInfo(ans []DisplayFileList, scenario string) []D
 		}
 	} else {
 		for _, p := range ft.Sub {
-			t = p.appendFile(len(p.Sub) == 0 && !strings.HasSuffix(p.Name, FileExtensionSha256), t)
+			flag := (arr[1] == "ISO" || arr[1] == "edge_img") && p.Sha256 != ""
+			t = p.appendFile(len(p.Sub) == 0 && !strings.HasSuffix(p.Name, FileExtensionSha256) && flag, t)
 			t = p.appendDir(len(p.Sub) != 0, t)
 		}
 	}

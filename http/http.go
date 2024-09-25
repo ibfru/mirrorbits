@@ -353,10 +353,15 @@ func (h *HTTP) mirrorHandler(w http.ResponseWriter, r *http.Request, ctx *Contex
 		}
 	}
 
+	limit := len(mlist)
+	if limit > 5 {
+		limit = 5
+	}
+
 	results = &mirrors.Results{
 		FileInfo:     fileInfo,
-		FileTree:     filesystem.GetRepoFileList(urlPath[1:], cnf.RepositoryFilter),
-		MirrorList:   mlist,
+		FileTree:     filesystem.GetRepoFileList(urlPath[1:], cnf),
+		MirrorList:   mlist[:limit],
 		ExcludedList: excluded,
 		ClientInfo:   clientInfo,
 		IP:           remoteIP,
