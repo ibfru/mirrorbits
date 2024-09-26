@@ -146,32 +146,19 @@ func GetSelectorList() []*LayerFile {
 func GetRepoFileList(version string, cnf *config.Configuration) []DisplayFileList {
 	lock.RLock()
 	defer lock.RUnlock()
-	//if v, ok := repoVersionMap[version]; ok {
-	//	return v
-	//}
+	if v, ok := repoVersionMap[version]; ok {
+		return v
+	}
 
 	if p, ok := fileTree.Mapping[version]; ok {
 		repoVersionMap[version] = p.flattening()
 	}
 
-	// x86-64 merge to x86_64
-	idx1 := -1
-	idx2 := -1
+	// x86-64 convert to x86_64
 	for i, v := range repoVersionMap[version] {
 		if v.Arch == "x86-64" {
-			idx1 = i
+			repoVersionMap[version][i].Arch = "x86_64"
 		}
-		if v.Arch == "x86_64" {
-			idx2 = i
-		}
-	}
-	if idx1 != -1 && idx2 == -1 {
-		repoVersionMap[version][idx1].Arch = "x86_64"
-	}
-	if idx1 != -1 && idx2 != -1 {
-		repoVersionMap[version][idx2].Tree = append(repoVersionMap[version][idx2].Tree, repoVersionMap[version][idx1].Tree...)
-		repoVersionMap[version][idx1] = repoVersionMap[version][0]
-		repoVersionMap[version] = repoVersionMap[version][1:]
 	}
 
 	for _, v := range cnf.RepositoryFilter.ParticularFile {
@@ -482,10 +469,29 @@ func collectRepoVersionList(filter config.DirFilter) {
 		if len(arch) > 0 {
 			sort.Strings(scenario)
 			sort.Strings(arch)
+			var editArch []string
+			editArch = append(editArch, arch...)
+			x, y := -1, -1
+			for i, s := range editArch {
+				if s == "x86_64" {
+					x = i
+				}
+				if s == "x86-64" {
+					y = i
+				}
+			}
+			if x == -1 && y != -1 {
+				editArch[y] = "x86_64"
+			}
+			if x != -1 && y != -1 {
+				editArch[y] = editArch[0]
+				editArch = editArch[1:]
+			}
+			sort.Strings(editArch)
 			repoVersionList = append(repoVersionList, DisplayRepoVersion{
 				Version:  v.Name,
 				Scenario: scenario,
-				Arch:     arch,
+				Arch:     editArch,
 				LTS:      strings.Contains(v.Name, "LTS"),
 			})
 
