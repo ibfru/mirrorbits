@@ -119,7 +119,7 @@ func Scan(typ core.ScannerType, r *database.Redis, c *mirrors.Cache, url string,
 
 	var precision core.Precision
 	t1 := time.Now()
-	precision, err = scanner.Scan(url, name, conn, stop)
+	precision, filePath, err := scanner.Scan(url, name, conn, stop)
 	log.Infof("[%s] scan files cost time = %4.8f s \n", name, time.Since(t1).Seconds())
 	if err != nil {
 		// Discard MULTI
@@ -127,6 +127,9 @@ func Scan(typ core.ScannerType, r *database.Redis, c *mirrors.Cache, url string,
 
 		// Remove the temporary key
 		conn.Do("DEL", s.filesTmpKey)
+
+		log.Warningf("[%s] Removing %s from mirror", name, filePath)
+		conn.Send("SREM", fmt.Sprintf("FILEMIRRORS_%s", filePath), id)
 
 		log.Errorf("[%s] %s", name, err.Error())
 		return nil, err
