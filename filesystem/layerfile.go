@@ -515,11 +515,11 @@ func collectRepoVersionList(filter config.DirFilter) {
 		}
 	}
 
-	for _, v := range repoVersionList {
+	for i, v := range repoVersionList {
 		for _, v1 := range filter.ParticularFile {
 			if v1.VersionName == v.Version {
-				v.Scenario = appendParticularScenarioArch(v.Scenario, v1.ScenarioName)
-				v.Arch = appendParticularScenarioArch(v.Arch, v1.ArchName)
+				repoVersionList[i].Scenario = appendParticularScenarioArch(repoVersionList[i].Scenario, v1.ScenarioName)
+				repoVersionList[i].Arch = appendParticularScenarioArch(repoVersionList[i].Arch, v1.ArchName)
 			}
 		}
 	}
