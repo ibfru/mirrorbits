@@ -105,7 +105,7 @@ type ParticularFileMapping struct {
 	ScenarioName string   `yaml:"ScenarioName"`
 	ArchName     string   `yaml:"ArchName"`
 	SourcePath   []string `yaml:"SourcePath"`
-	HashPath     []string `yaml:"HashPath"`
+	SHA256List   []string `yaml:"SHA256List"`
 }
 
 type DirFilter struct {

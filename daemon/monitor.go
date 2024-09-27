@@ -497,7 +497,7 @@ func (m *monitor) healthCheck(mirror mirrors.Mirror) error {
 		if err == nil && rsize != size {
 			log.Warningf(format+"File size mismatch! [%s] (%dms)", mirror.Name, file)
 		} else {
-			log.Noticef(format+"Up! (%dms)", mirror.Name)
+			log.Noticef(format+"Up!", mirror.Name)
 		}
 	case 404:
 		err = mirrors.MarkMirrorDown(m.redis, mirror.ID, fmt.Sprintf("File not found %s (error 404)", file))

@@ -19,17 +19,17 @@ import (
 
 var mirrorCheckClient = resty.New().RemoveProxy()
 
-// HttpScanner is the implementation of an rsync scanner
+// HttpScanner is the implementation of an http scanner
 type HttpScanner struct {
 	scan *scan
 }
 
-// Scan starts an rsync scan of the given mirror
+// Scan starts an http head scan of the given mirror
 func (r *HttpScanner) Scan(httpUrl, identifier string, conn redis.Conn, stop <-chan struct{}) (core.Precision, string, error) {
 
 	fileList := filesystem.GetSelectorList()
 	recentFile := fileList[0]
-	filePath := strings.ReplaceAll(recentFile.Dir, filesystem.Sep, "/") + "/" + recentFile.Name
+	filePath := recentFile.Dir + filesystem.Sep + recentFile.Name
 
 	if !strings.HasPrefix(httpUrl, "https://") {
 		return 0, filePath, fmt.Errorf("%s does not start with https://", httpUrl)
@@ -57,10 +57,10 @@ func (r *HttpScanner) Scan(httpUrl, identifier string, conn redis.Conn, stop <-c
 
 	fd := filesystem.FileData{}
 	for i, fl := range fileList {
-		fileUrl := strings.ReplaceAll(fl.Dir, filesystem.Sep, "/") + "/" + fl.Name
+		fileUrl := fl.Dir + filesystem.Sep + fl.Name
 
 	retry:
-		head1, err1 := client.R().Head(uri.String() + "/" + fileUrl)
+		head1, err1 := client.R().Head(utils.ConcatURL(uri.String(), fileUrl))
 		if err1 != nil {
 			return 0, filePath, err
 		}
@@ -69,7 +69,8 @@ func (r *HttpScanner) Scan(httpUrl, identifier string, conn redis.Conn, stop <-c
 			goto retry
 		}
 		if head1.StatusCode() != http.StatusOK {
-			return 0, filePath, errors.New("file no." + strconv.FormatInt(int64(i), 10) + ", http url: " + uri.String() + "/" + fileUrl + " request failed")
+			return 0, filePath, errors.New("file no." + strconv.FormatInt(int64(i), 10) +
+				", http url: " + uri.String() + "/" + fileUrl + " request failed")
 		}
 
 		sizeStr := head1.Header().Get("Content-Length")
@@ -78,7 +79,7 @@ func (r *HttpScanner) Scan(httpUrl, identifier string, conn redis.Conn, stop <-c
 		fd.Size = size
 
 		modTimeStr := head1.Header().Get("Last-Modified")
-		modTime, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", modTimeStr)
+		modTime, _ := time.Parse(time.RFC1123, modTimeStr)
 		fd.ModTime = modTime
 		r.scan.ScannerAddFile(fd)
 	}
